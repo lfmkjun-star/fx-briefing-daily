@@ -1,6 +1,6 @@
 ---
 name: fx-briefing-daily
-description: 평일 오전 7시, 원/달러 환율 변동·이유·전망 3줄 브리핑을 카카오톡(나와의 채팅)으로 발송하고, 같은 내용을 상세 HTML 아티팩트로도 갱신
+description: 평일 오전 7시, 원/달러 환율 변동·이유·전망 3줄 브리핑을 카카오톡으로 발송하고, 상세 HTML을 Artifact·GitHub Pages(https://lfmkjun-star.github.io/fx-briefing-daily/)로도 갱신
 ---
 
 매일 아침 원/달러(USD/KRW) 환율 브리핑을 만들어서 카카오톡으로 보낸다. 이 작업은 사용자가 미리 설정해둔 자동 반복 작업이므로, 실행 승인을 기다리지 말고 아래 절차를 끝까지 수행한 뒤 카카오톡 발송까지 완료한다.
@@ -77,3 +77,16 @@ URL
 3. 수정한 HTML을 `Artifact` 도구로 `action: "publish"`(기본값), `url: 위 고정 URL`, 같은 `file_path`로 다시 발행한다. `favicon`은 이미 설정돼 있으므로 생략한다(재지정하면 안 됨).
 4. 발행이 끝나면 카카오톡으로 메시지 한 통을 더 보낸다: `🔗 더 자세히 보기: https://claude.ai/artifact/5FPjtyMXbCiRb8f3sDey6D`. 이 발송도 승인을 묻지 않는다.
 5. `read` 단계에서 버전 충돌(다른 곳에서 먼저 수정됨) 오류가 나면, 새로 받은 최신 버전 위에 같은 방식으로 다시 반영해서 발행한다 — force로 덮어쓰지 않는다.
+6. 같은 HTML을 `Write` 도구로 `C:\Users\produ\Desktop\fxBriefingDaily\htmlReport\fx-briefing.html` 경로에도 덮어쓴다 (파일이 이미 있으므로 먼저 Read 후 Write). 이건 사용자가 바탕화면에서 바로 열어볼 수 있는 로컬 사본이며, 매 실행마다 최신 내용으로 자동 갱신되는 용도다.
+
+## 7단계 — GitHub Pages 반영
+
+`C:\Users\produ\Desktop\fxBriefingDaily`는 GitHub 저장소(`https://github.com/lfmkjun-star/fx-briefing-daily`, public)이자 GitHub Pages 사이트다. 공개 URL: `https://lfmkjun-star.github.io/fx-briefing-daily/`
+
+1. 같은 HTML을 `Write` 도구로 `C:\Users\produ\Desktop\fxBriefingDaily\index.html`에도 덮어쓴다 (6단계와 동일 내용, 파일명만 다름 — GitHub Pages는 `index.html`을 루트 URL로 서빙한다).
+2. Bash 도구로 아래를 실행해 GitHub에 반영한다 (자격 증명은 Windows Credential Manager에 이미 저장돼 있어 별도 로그인 없이 push된다):
+   ```
+   cd "C:\Users\produ\Desktop\fxBriefingDaily" && git add index.html && git commit -m "Update FX briefing $(date +%Y-%m-%d)" && git push
+   ```
+3. 전일과 내용이 완전히 같아 `git commit`이 "nothing to commit"으로 끝나면 정상이니 그대로 넘어간다 (push할 것이 없다는 뜻). 이 단계 실패로 카카오톡 발송을 막지 않는다 — 실패하면 그냥 건너뛴다.
+4. 이 저장소는 공개(public)이므로, 브리핑 문구에 회사 내부만 알 수 있는 민감한 정보(구체적 계약 조건, 미공개 발주 계획 등)를 담지 않는다 — 지금까지의 형식(환율 수치·공개 뉴스 기반 분석)이면 문제없다.
