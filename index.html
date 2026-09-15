@@ -1,0 +1,352 @@
+<title>원달러 환율 브리핑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f5f1e6;
+    --paper-raised:#fbf8f0;
+    --ink:#1b2420;
+    --ink-dim:#5b6660;
+    --line:rgba(27,36,32,0.14);
+    --accent-wheat:#a9782a;
+    --accent-teal:#1f6f63;
+    --up:#a8442d;      /* 원화 약세 · 원가 상승 */
+    --down:#1f8a6f;    /* 원화 강세 · 원가 하락 */
+    --up-soft:rgba(168,68,45,0.12);
+    --down-soft:rgba(31,138,111,0.12);
+    --chip-bg:rgba(27,36,32,0.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#111d19;
+      --paper-raised:#162521;
+      --ink:#ece6d6;
+      --ink-dim:#9fada4;
+      --line:rgba(236,230,214,0.14);
+      --accent-wheat:#d9a355;
+      --accent-teal:#4fb3a0;
+      --up:#e0836a;
+      --down:#4fcf9f;
+      --up-soft:rgba(224,131,106,0.14);
+      --down-soft:rgba(79,207,159,0.14);
+      --chip-bg:rgba(236,230,214,0.08);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#111d19;
+    --paper-raised:#162521;
+    --ink:#ece6d6;
+    --ink-dim:#9fada4;
+    --line:rgba(236,230,214,0.14);
+    --accent-wheat:#d9a355;
+    --accent-teal:#4fb3a0;
+    --up:#e0836a;
+    --down:#4fcf9f;
+    --up-soft:rgba(224,131,106,0.14);
+    --down-soft:rgba(79,207,159,0.14);
+    --chip-bg:rgba(236,230,214,0.08);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans KR","Noto Sans KR",sans-serif;
+    padding:40px 16px 64px;
+  }
+  .sheet{
+    max-width:640px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+  }
+
+  /* Masthead */
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    flex-wrap:wrap;
+    gap:8px 16px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:14px;
+  }
+  .masthead .brand{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--accent-teal);
+  }
+  .masthead .date{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+
+  /* Rate tile */
+  .rate-tile{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:28px 28px 24px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .rate-row{
+    display:flex;
+    align-items:flex-end;
+    gap:18px;
+    flex-wrap:wrap;
+  }
+  .rate-value{
+    font-family:"Fraunces",serif;
+    font-weight:500;
+    font-size:56px;
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-0.01em;
+  }
+  .rate-unit{
+    font-size:20px;
+    color:var(--ink-dim);
+    font-weight:500;
+    margin-left:2px;
+  }
+  .delta-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 12px;
+    border-radius:999px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:14px;
+    font-weight:500;
+    font-variant-numeric:tabular-nums;
+    white-space:nowrap;
+  }
+  .delta-pill.is-up{background:var(--up-soft);color:var(--up);}
+  .delta-pill.is-down{background:var(--down-soft);color:var(--down);}
+  .rate-sub{
+    font-size:13px;
+    color:var(--ink-dim);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* Range chart */
+  .range-block{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .range-label{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+  }
+  svg text{
+    font-family:"IBM Plex Mono",monospace;
+    fill:var(--ink-dim);
+  }
+
+  /* Section blocks */
+  .section{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .section-label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    font-weight:600;
+    color:var(--accent-wheat);
+  }
+  .section-label .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--accent-wheat);
+    flex:none;
+  }
+  .section p{
+    margin:0;
+    font-size:15.5px;
+    line-height:1.72;
+    max-width:62ch;
+  }
+
+  /* Practical note callout */
+  .note{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    background:var(--chip-bg);
+    border-left:3px solid var(--accent-teal);
+    border-radius:2px;
+    padding:16px 18px;
+  }
+  .note .status{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--accent-teal);
+    border:1px solid var(--accent-teal);
+    border-radius:999px;
+    padding:3px 10px;
+    white-space:nowrap;
+    flex:none;
+    margin-top:2px;
+  }
+  .note p{margin:0;font-size:14.5px;line-height:1.65;}
+
+  /* Sources */
+  .sources{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+  }
+  .sources .section-label{color:var(--ink-dim);}
+  .sources .section-label .dot{background:var(--ink-dim);}
+  .source-item{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+  }
+  .source-item:last-child{border-bottom:none;}
+  .source-head{
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    flex-wrap:wrap;
+  }
+  .source-outlet{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    color:var(--accent-teal);
+    white-space:nowrap;
+    flex:none;
+  }
+  .source-item a{
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid var(--line);
+    font-weight:500;
+  }
+  .source-item a:hover{border-bottom-color:var(--ink);}
+  .source-summary{
+    margin:0;
+    padding-left:calc(11.5px * 3.4);
+    font-size:13px;
+    line-height:1.6;
+    color:var(--ink-dim);
+  }
+  @media (max-width:480px){
+    .source-summary{padding-left:0;}
+  }
+
+  /* Footer */
+  footer{
+    font-size:11.5px;
+    color:var(--ink-dim);
+    text-align:center;
+    line-height:1.6;
+  }
+
+  @media (max-width:480px){
+    .rate-value{font-size:44px;}
+    body{padding:28px 16px 48px;}
+  }
+</style>
+
+<div class="sheet">
+
+  <div class="masthead">
+    <span class="brand">USD · KRW 환율 브리핑</span>
+    <span class="date" id="genDate">2026-09-15 (월) · 08:19 KST 기준</span>
+  </div>
+
+  <div class="rate-tile">
+    <div class="rate-row">
+      <div><span class="rate-value" id="rateValue">1,346.20</span><span class="rate-unit">원</span></div>
+      <span class="delta-pill is-down" id="deltaPill">▼ 0.83원 (-0.06%)</span>
+    </div>
+    <div class="rate-sub" id="rateSub">전일 종가 1,347.03원 → 오늘 1,346.20원 · 직전 거래일(9/12) 대비</div>
+
+    <div class="range-block">
+      <div class="range-label"><span>52주 최저 1,334.34</span><span>52주 최고 1,562.47</span></div>
+      <svg viewBox="0 0 600 46" width="100%" height="46" preserveAspectRatio="xMidYMid meet">
+        <line x1="30" y1="14" x2="570" y2="14" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="30" y1="14" x2="97" y2="14" stroke="var(--down)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="30" cy="14" r="3" fill="var(--ink-dim)"/>
+        <circle cx="570" cy="14" r="3" fill="var(--ink-dim)"/>
+        <circle cx="97" cy="14" r="5.5" fill="var(--paper)" stroke="var(--down)" stroke-width="2.5"/>
+        <text x="97" y="34" font-size="12" text-anchor="middle" font-weight="500" fill="var(--ink)">1,346.20</text>
+        <text x="30" y="34" font-size="10.5" text-anchor="start">저점</text>
+        <text x="570" y="34" font-size="10.5" text-anchor="end">고점</text>
+      </svg>
+      <div class="range-label" style="justify-content:center;text-transform:none;letter-spacing:0;font-size:12px;">
+        52주 구간의 하위 5% 지점 · 최근 1년 원화 강세 -3.36%
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label"><span class="dot"></span>오늘 왜 움직였나</div>
+    <p>미국 8월 근원 소비자물가(CPI)가 전월 대비 0.3% 올라 시장 예상치(0.2%)를 웃돌았고, 국제유가가 배럴당 100달러를 넘어서며 인플레이션 우려가 다시 불붙었다. 이 여파로 미국 현지시간 9월 15~16일 열리는 FOMC에서 금리 인상 가능성이 부각되며 어제까지 달러 강세가 이어졌다. 다만 반도체 수출업체의 달러 매도 물량과 엔화 강세 전망이 원화 약세 폭을 눌러, 오늘 아침은 소폭(-0.83원) 되돌림이 나타났다.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label"><span class="dot"></span>다음 며칠 전망</div>
+    <p>이번 조정은 방향 전환이라기보다 결과 발표를 앞둔 숨고르기에 가깝다. 진짜 변곡점은 한국시간 9월 17일 새벽 나올 FOMC 결과다 — 매파적 코멘트나 실제 금리 인상이 확인되면 강달러가 재개될 가능성이 있고, 반대로 시장 예상보다 완화적이면 원화가 반등할 여지도 있다. 지금은 어느 한쪽으로 단정하기보다 결과를 확인한 뒤 대응하는 편이 안전하다.</p>
+  </div>
+
+  <div class="note">
+    <span class="status">관망</span>
+    <p>오늘 변동폭(-0.83원)은 조달 원가에 반영할 만한 신호가 아닌 노이즈 수준. 선물환 등 헤지 대응을 서두를 필요는 없고, 9/17 새벽 FOMC 발표 이후 재점검을 권장.</p>
+  </div>
+
+  <div class="sources">
+    <div class="section-label"><span class="dot"></span>근거 기사</div>
+    <div class="source-item">
+      <div class="source-head">
+        <span class="source-outlet">베타뉴스</span>
+        <a href="https://www.betanews.net/article/view/beta202609140073" target="_blank" rel="noopener">'美 FOMC' 금리 결정 주시...원·달러 환율, 1.4원 오른 1347.3원 마감</a>
+      </div>
+      <p class="source-summary">전일(9/14) 원·달러가 1.4원 오른 1,347.3원에 마감했다고 전하며, 미 근원 CPI 서프라이즈와 국제유가 100달러 돌파로 9/15~16 FOMC의 금리 인상 가능성이 커졌다고 분석. 반도체 수출업체 달러 매도와 엔화 강세 전망이 상승 폭을 제한하는 요인으로 꼽힘.</p>
+    </div>
+    <div class="source-item">
+      <div class="source-head">
+        <span class="source-outlet">뉴데일리</span>
+        <a href="https://www.newdaily.co.kr/site/data/html/2026/09/11/2026091100290.html" target="_blank" rel="noopener">美 8월 근원 CPI 예상 상회… 연준 '9월 금리 인상' 힘받나</a>
+      </div>
+      <p class="source-summary">미 8월 근원 CPI가 전월 대비 0.3% 올라 예상치(0.2%)를 웃돌았다고 보도. 휘발유 가격이 한 달 새 3.9% 뛰며 전체 물가 상승분의 3분의 1을 차지했고, 중동發 유가 급등까지 겹치며 연준의 9월 금리 인상 확률이 일주일 새 약 50%에서 70%로 뛰었다고 전함.</p>
+    </div>
+    <div class="source-item">
+      <div class="source-head">
+        <span class="source-outlet">비건뉴스</span>
+        <a href="https://www.vegannews.co.kr/news/article.html?no=385602" target="_blank" rel="noopener">9월 FOMC 금리 결정, 한국시간 17일 오전 3시</a>
+      </div>
+      <p class="source-summary">9월 FOMC는 미국 현지시간 15~16일 이틀간 열리며, 금리 결정은 한국시간 17일 오전 3시에 공개되고 30분 뒤 의장 기자회견이 이어진다고 안내. 이번 회의는 경제전망요약(SEP)·점도표가 함께 나오는 분기 회의라 시장의 주목도가 특히 높다고 설명.</p>
+    </div>
+  </div>
+
+  <footer>
+    매일 평일 오전 자동 업데이트 · 같은 내용의 3줄 요약이 카카오톡으로도 발송됩니다.<br>
+    투자 판단의 근거로 쓰기보다 원자재 조달 실무 참고용으로 활용하세요.
+  </footer>
+
+</div>
