@@ -1,4 +1,4 @@
-<title>원달러 환율 브리핑</title>
+<title>외환 브리핑</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -16,6 +16,8 @@
     --up-soft:rgba(168,68,45,0.12);
     --down-soft:rgba(31,138,111,0.12);
     --chip-bg:rgba(27,36,32,0.06);
+    --alert:#a8442d;
+    --alert-soft:rgba(168,68,45,0.1);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -31,6 +33,8 @@
       --up-soft:rgba(224,131,106,0.14);
       --down-soft:rgba(79,207,159,0.14);
       --chip-bg:rgba(236,230,214,0.08);
+      --alert:#e0836a;
+      --alert-soft:rgba(224,131,106,0.14);
     }
   }
   :root[data-theme="dark"]{
@@ -46,6 +50,8 @@
     --up-soft:rgba(224,131,106,0.14);
     --down-soft:rgba(79,207,159,0.14);
     --chip-bg:rgba(236,230,214,0.08);
+    --alert:#e0836a;
+    --alert-soft:rgba(224,131,106,0.14);
   }
 
   *{box-sizing:border-box;}
@@ -61,7 +67,7 @@
     margin:0 auto;
     display:flex;
     flex-direction:column;
-    gap:28px;
+    gap:24px;
   }
 
   /* Masthead */
@@ -86,6 +92,57 @@
     font-size:12px;
     color:var(--ink-dim);
   }
+
+  /* Tabs */
+  .tabbar{
+    display:flex;
+    gap:6px;
+    background:var(--chip-bg);
+    padding:4px;
+    border-radius:8px;
+  }
+  .tabbtn{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border:none;
+    background:transparent;
+    color:var(--ink-dim);
+    font-family:"IBM Plex Sans KR",sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:10px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:background 0.15s, color 0.15s;
+  }
+  .tabbtn[aria-selected="true"]{
+    background:var(--paper-raised);
+    color:var(--ink);
+    box-shadow:0 1px 0 var(--line);
+  }
+  .tabbtn:focus-visible{outline:2px solid var(--accent-teal); outline-offset:2px;}
+  .tabbtn .flag{font-size:16px;}
+
+  .tab-panel{display:none; flex-direction:column; gap:24px;}
+  .tab-panel.is-active{display:flex;}
+
+  /* Alert banner */
+  .alert-banner{
+    display:none;
+    align-items:center;
+    gap:10px;
+    background:var(--alert-soft);
+    border:1px solid var(--alert);
+    color:var(--alert);
+    border-radius:4px;
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:600;
+  }
+  .alert-banner.is-shown{display:flex;}
 
   /* Rate tile */
   .rate-tile{
@@ -206,6 +263,8 @@
     flex:none;
     margin-top:2px;
   }
+  .note.is-warning{border-left-color:var(--alert);}
+  .note.is-warning .status{color:var(--alert); border-color:var(--alert);}
   .note p{margin:0;font-size:14.5px;line-height:1.65;}
 
   /* Sources */
@@ -269,84 +328,169 @@
   @media (max-width:480px){
     .rate-value{font-size:44px;}
     body{padding:28px 16px 48px;}
+    .tabbtn{font-size:13px; padding:9px 8px;}
   }
 </style>
 
 <div class="sheet">
 
   <div class="masthead">
-    <span class="brand">USD · KRW 환율 브리핑</span>
-    <span class="date" id="genDate">2026-09-15 (월) · 08:19 KST 기준</span>
+    <span class="brand">외환 브리핑</span>
+    <span class="date" id="genDate">2026-09-15 (화) · 16:24 KST 기준 · 정기 업데이트</span>
   </div>
 
-  <div class="rate-tile">
-    <div class="rate-row">
-      <div><span class="rate-value" id="rateValue">1,346.20</span><span class="rate-unit">원</span></div>
-      <span class="delta-pill is-down" id="deltaPill">▼ 0.83원 (-0.06%)</span>
-    </div>
-    <div class="rate-sub" id="rateSub">전일 종가 1,347.03원 → 오늘 1,346.20원 · 직전 거래일(9/12) 대비</div>
+  <div class="tabbar" role="tablist">
+    <button class="tabbtn" id="tabBtnUsd" role="tab" aria-selected="true" aria-controls="panelUsd">
+      <span class="flag">💵</span> 달러 USD/KRW
+    </button>
+    <button class="tabbtn" id="tabBtnJpy" role="tab" aria-selected="false" aria-controls="panelJpy">
+      <span class="flag">💴</span> 엔화 JPY/KRW
+    </button>
+  </div>
 
-    <div class="range-block">
-      <div class="range-label"><span>52주 최저 1,334.34</span><span>52주 최고 1,562.47</span></div>
-      <svg viewBox="0 0 600 46" width="100%" height="46" preserveAspectRatio="xMidYMid meet">
-        <line x1="30" y1="14" x2="570" y2="14" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
-        <line x1="30" y1="14" x2="97" y2="14" stroke="var(--down)" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="30" cy="14" r="3" fill="var(--ink-dim)"/>
-        <circle cx="570" cy="14" r="3" fill="var(--ink-dim)"/>
-        <circle cx="97" cy="14" r="5.5" fill="var(--paper)" stroke="var(--down)" stroke-width="2.5"/>
-        <text x="97" y="34" font-size="12" text-anchor="middle" font-weight="500" fill="var(--ink)">1,346.20</text>
-        <text x="30" y="34" font-size="10.5" text-anchor="start">저점</text>
-        <text x="570" y="34" font-size="10.5" text-anchor="end">고점</text>
-      </svg>
-      <div class="range-label" style="justify-content:center;text-transform:none;letter-spacing:0;font-size:12px;">
-        52주 구간의 하위 5% 지점 · 최근 1년 원화 강세 -3.36%
+  <!-- ===================== USD TAB ===================== -->
+  <div class="tab-panel is-active" id="panelUsd" role="tabpanel" aria-labelledby="tabBtnUsd">
+
+    <div class="alert-banner" id="alertUsd">⚡ 전일 대비 5% 이상 급변동 감지 — 정기 시간 외 긴급 갱신</div>
+
+    <div class="rate-tile">
+      <div class="rate-row">
+        <div><span class="rate-value" id="rateValueUsd">1,359.98</span><span class="rate-unit">원</span></div>
+        <span class="delta-pill is-up" id="deltaPillUsd">▲ 12.95원 (+0.96%)</span>
+      </div>
+      <div class="rate-sub" id="rateSubUsd">전일 종가 1,347.03원 → 현재 1,359.98원 · 9/15 16:24 기준</div>
+
+      <div class="range-block">
+        <div class="range-label"><span>52주 최저 1,334.34</span><span>52주 최고 1,562.47</span></div>
+        <svg viewBox="0 0 600 46" width="100%" height="46" preserveAspectRatio="xMidYMid meet">
+          <line x1="30" y1="14" x2="570" y2="14" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="30" y1="14" x2="91" y2="14" stroke="var(--up)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="30" cy="14" r="3" fill="var(--ink-dim)"/>
+          <circle cx="570" cy="14" r="3" fill="var(--ink-dim)"/>
+          <circle cx="91" cy="14" r="5.5" fill="var(--paper)" stroke="var(--up)" stroke-width="2.5"/>
+          <text x="91" y="34" font-size="12" text-anchor="middle" font-weight="500" fill="var(--ink)">1,359.98</text>
+          <text x="30" y="34" font-size="10.5" text-anchor="start">저점</text>
+          <text x="570" y="34" font-size="10.5" text-anchor="end">고점</text>
+        </svg>
+        <div class="range-label" style="justify-content:center;text-transform:none;letter-spacing:0;font-size:12px;">
+          52주 구간의 하위 11% 지점 · 최근 1년 원화 강세 -1.80%
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-label"><span class="dot"></span>오늘 왜 움직였나</div>
+      <p>사우디아라비아의 '동서 파이프라인'이 드론 피격으로 가동을 멈추면서 하루 약 470만 배럴 규모의 원유 수출에 차질이 생겼다. 여기에 호르무즈 해협 인근 유조선 피격까지 겹치며 브렌트유가 장중 107달러(+2.74%)까지 치솟았고, 중동발 공급 리스크와 인플레이션 우려가 겹치며 원화를 포함한 아시아 통화 전반이 달러 대비 약세를 보였다.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label"><span class="dot"></span>다음 며칠 전망</div>
+      <p>파이프라인 복구 시점과 호르무즈 해협의 추가 충돌 여부가 유가·환율 방향을 좌우할 변수다. 트럼프 대통령이 외교적 해결 가능성을 언급하며 장중 급등분의 상당 부분이 반납된 전례가 있어, 지정학적 긴장이 완화되면 되돌림도 빠를 수 있다. 다만 한국시간 9/17 새벽 FOMC 결과까지 겹쳐 있어 두 이벤트가 동시에 매파적으로 흐르면 추가 상승 압력이 커질 수 있다.</p>
+    </div>
+
+    <div class="note is-warning">
+      <span class="status">주의</span>
+      <p>오늘 변동폭(+12.95원, +0.96%)은 평소보다 큰 편이라 노이즈로 보기는 어렵다. 다만 지정학적 이벤트발 반응이라 되돌림 가능성도 있으니, 헤지 실행보다는 하루 이틀 뉴스 흐름과 9/17 FOMC 결과를 더 지켜본 뒤 판단을 권장.</p>
+    </div>
+
+    <div class="sources">
+      <div class="section-label"><span class="dot"></span>근거 기사</div>
+      <div class="source-item">
+        <div class="source-head">
+          <span class="source-outlet">아시아경제</span>
+          <a href="https://view.asiae.co.kr/article/2026091409142519536" target="_blank" rel="noopener">브렌트유 급등, 110달러선 위협…"사우디 우회 송유관 피격 여파"</a>
+        </div>
+        <p class="source-summary">사우디 동서 파이프라인이 드론 피격으로 운영을 멈추며 브렌트유가 배럴당 107.48달러(+2.74%), WTI가 102.24달러(+2.19%)까지 상승했다고 전함. 해당 송유관은 하루 470만 배럴을 실어나르던 주요 수출 통로였고, 호르무즈 해협 인근 유조선 피격과 후티 반군의 홍해 항로 위협까지 겹쳐 중동 공급 리스크가 확대되고 있다고 분석.</p>
+      </div>
+      <div class="source-item">
+        <div class="source-head">
+          <span class="source-outlet">더페어</span>
+          <a href="https://www.thefairnews.co.kr/news/articleView.html?idxno=88025" target="_blank" rel="noopener">사우디 송유관 피격·호르무즈 통항 급감…국제유가 1%대 상승</a>
+        </div>
+        <p class="source-summary">전 세계 석유 공급량의 최대 4%가 이번 사태로 영향받을 수 있다고 전하면서도, 트럼프 대통령이 외교적 해결 가능성을 언급하자 장중 5%대 급등분의 상당 부분이 반납됐다고 보도 — 지정학적 리스크가 하루 만에도 크게 되돌려질 수 있음을 보여주는 사례.</p>
       </div>
     </div>
   </div>
 
-  <div class="section">
-    <div class="section-label"><span class="dot"></span>오늘 왜 움직였나</div>
-    <p>미국 8월 근원 소비자물가(CPI)가 전월 대비 0.3% 올라 시장 예상치(0.2%)를 웃돌았고, 국제유가가 배럴당 100달러를 넘어서며 인플레이션 우려가 다시 불붙었다. 이 여파로 미국 현지시간 9월 15~16일 열리는 FOMC에서 금리 인상 가능성이 부각되며 어제까지 달러 강세가 이어졌다. 다만 반도체 수출업체의 달러 매도 물량과 엔화 강세 전망이 원화 약세 폭을 눌러, 오늘 아침은 소폭(-0.83원) 되돌림이 나타났다.</p>
-  </div>
+  <!-- ===================== JPY TAB ===================== -->
+  <div class="tab-panel" id="panelJpy" role="tabpanel" aria-labelledby="tabBtnJpy">
 
-  <div class="section">
-    <div class="section-label"><span class="dot"></span>다음 며칠 전망</div>
-    <p>이번 조정은 방향 전환이라기보다 결과 발표를 앞둔 숨고르기에 가깝다. 진짜 변곡점은 한국시간 9월 17일 새벽 나올 FOMC 결과다 — 매파적 코멘트나 실제 금리 인상이 확인되면 강달러가 재개될 가능성이 있고, 반대로 시장 예상보다 완화적이면 원화가 반등할 여지도 있다. 지금은 어느 한쪽으로 단정하기보다 결과를 확인한 뒤 대응하는 편이 안전하다.</p>
-  </div>
+    <div class="alert-banner" id="alertJpy">⚡ 전일 대비 5% 이상 급변동 감지 — 정기 시간 외 긴급 갱신</div>
 
-  <div class="note">
-    <span class="status">관망</span>
-    <p>오늘 변동폭(-0.83원)은 조달 원가에 반영할 만한 신호가 아닌 노이즈 수준. 선물환 등 헤지 대응을 서두를 필요는 없고, 9/17 새벽 FOMC 발표 이후 재점검을 권장.</p>
-  </div>
-
-  <div class="sources">
-    <div class="section-label"><span class="dot"></span>근거 기사</div>
-    <div class="source-item">
-      <div class="source-head">
-        <span class="source-outlet">베타뉴스</span>
-        <a href="https://www.betanews.net/article/view/beta202609140073" target="_blank" rel="noopener">'美 FOMC' 금리 결정 주시...원·달러 환율, 1.4원 오른 1347.3원 마감</a>
+    <div class="rate-tile">
+      <div class="rate-row">
+        <div><span class="rate-value" id="rateValueJpy">878.11</span><span class="rate-unit">원 (100엔)</span></div>
+        <span class="delta-pill is-up" id="deltaPillJpy">▲ 5.39원 (+0.62%)</span>
       </div>
-      <p class="source-summary">전일(9/14) 원·달러가 1.4원 오른 1,347.3원에 마감했다고 전하며, 미 근원 CPI 서프라이즈와 국제유가 100달러 돌파로 9/15~16 FOMC의 금리 인상 가능성이 커졌다고 분석. 반도체 수출업체 달러 매도와 엔화 강세 전망이 상승 폭을 제한하는 요인으로 꼽힘.</p>
+      <div class="rate-sub" id="rateSubJpy">전일 종가 872.72원 → 현재 878.11원(100엔 기준) · 9/15 16:23 기준</div>
+
+      <div class="range-block">
+        <div class="range-label"><span>52주 최저 852.20</span><span>52주 최고 974.83</span></div>
+        <svg viewBox="0 0 600 46" width="100%" height="46" preserveAspectRatio="xMidYMid meet">
+          <line x1="30" y1="14" x2="570" y2="14" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="30" y1="14" x2="144" y2="14" stroke="var(--up)" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="30" cy="14" r="3" fill="var(--ink-dim)"/>
+          <circle cx="570" cy="14" r="3" fill="var(--ink-dim)"/>
+          <circle cx="144" cy="14" r="5.5" fill="var(--paper)" stroke="var(--up)" stroke-width="2.5"/>
+          <text x="144" y="34" font-size="12" text-anchor="middle" font-weight="500" fill="var(--ink)">878.11</text>
+          <text x="30" y="34" font-size="10.5" text-anchor="start">저점</text>
+          <text x="570" y="34" font-size="10.5" text-anchor="end">고점</text>
+        </svg>
+        <div class="range-label" style="justify-content:center;text-transform:none;letter-spacing:0;font-size:12px;">
+          52주 구간의 하위 21% 지점 · 최근 1년 원화 강세 -6.56%(엔화 대비)
+        </div>
+      </div>
     </div>
-    <div class="source-item">
-      <div class="source-head">
-        <span class="source-outlet">뉴데일리</span>
-        <a href="https://www.newdaily.co.kr/site/data/html/2026/09/11/2026091100290.html" target="_blank" rel="noopener">美 8월 근원 CPI 예상 상회… 연준 '9월 금리 인상' 힘받나</a>
-      </div>
-      <p class="source-summary">미 8월 근원 CPI가 전월 대비 0.3% 올라 예상치(0.2%)를 웃돌았다고 보도. 휘발유 가격이 한 달 새 3.9% 뛰며 전체 물가 상승분의 3분의 1을 차지했고, 중동發 유가 급등까지 겹치며 연준의 9월 금리 인상 확률이 일주일 새 약 50%에서 70%로 뛰었다고 전함.</p>
+
+    <div class="section">
+      <div class="section-label"><span class="dot"></span>오늘 왜 움직였나</div>
+      <p>오늘 100엔당 원화값이 오른 건 엔화가 세졌다기보다 원화가 유가발 충격에 더 크게 흔들린 영향이 크다. 엔화 자체는 이번 달 BOJ의 긴축 기대와 캐리트레이드 청산으로 강세 흐름을 타고 있었지만, 정작 미 달러 대비로는 154.70엔까지 밀리며(+0.24%) 강세 폭이 제한된 상태다. 즉 달러 강세·중동 리스크가 원화와 엔화 모두를 같은 방향으로 흔든 하루였다.</p>
     </div>
-    <div class="source-item">
-      <div class="source-head">
-        <span class="source-outlet">비건뉴스</span>
-        <a href="https://www.vegannews.co.kr/news/article.html?no=385602" target="_blank" rel="noopener">9월 FOMC 금리 결정, 한국시간 17일 오전 3시</a>
+
+    <div class="section">
+      <div class="section-label"><span class="dot"></span>다음 며칠 전망</div>
+      <p>한국시간 9/18(금) 일본은행이 정책금리를 25bp 올려 1.25%로(1995년 4월 이후 최고 수준) 인상할 가능성이 유력하게 점쳐진다. 관건은 인상 자체보다 이후 추가 인상 속도에 대한 신호다 — 매파적 톤이 확인되면 엔화가 원화 대비로도 재차 강해질 수 있고, 신중한 톤이면 지금 수준에서 정체될 가능성이 크다.</p>
+    </div>
+
+    <div class="note">
+      <span class="status">관망</span>
+      <p>100엔당 5원 남짓의 오늘 변동은 조달 원가에 반영할 신호가 아닌 노이즈 수준. 9/18 새벽 BOJ 결과 확인 후 재점검을 권장.</p>
+    </div>
+
+    <div class="sources">
+      <div class="section-label"><span class="dot"></span>근거 기사</div>
+      <div class="source-item">
+        <div class="source-head">
+          <span class="source-outlet">Investing.com</span>
+          <a href="https://kr.investing.com/news/forex-news/article-2094368" target="_blank" rel="noopener">엔화 약세에 아시아 통화 하락…Fed·BOJ 결정 주목</a>
+        </div>
+        <p class="source-summary">USD/JPY가 0.24% 오른 154.70을 기록해 지난주 7개월 고점(152.89)에서 멀어졌다고 전함. 금요일 BOJ의 25bp 금리 인상은 이미 기정사실화된 분위기라, 인상 자체보다 향후 인상 속도에 대한 시그널이 시장의 관심사라고 분석. 유가 급등과 달러 강세로 원화·루피아·호주달러 등 아시아 통화 전반이 약세를 보였다고 덧붙임.</p>
       </div>
-      <p class="source-summary">9월 FOMC는 미국 현지시간 15~16일 이틀간 열리며, 금리 결정은 한국시간 17일 오전 3시에 공개되고 30분 뒤 의장 기자회견이 이어진다고 안내. 이번 회의는 경제전망요약(SEP)·점도표가 함께 나오는 분기 회의라 시장의 주목도가 특히 높다고 설명.</p>
     </div>
   </div>
 
   <footer>
     매일 평일 오전 자동 업데이트 · 같은 내용의 3줄 요약이 카카오톡으로도 발송됩니다.<br>
+    전일 대비 5% 이상 급변동 시에는 정기 시간과 무관하게 즉시 갱신·알림됩니다.<br>
     투자 판단의 근거로 쓰기보다 원자재 조달 실무 참고용으로 활용하세요.
   </footer>
 
 </div>
+
+<script>
+(function(){
+  var tabs = [
+    {btn: document.getElementById('tabBtnUsd'), panel: document.getElementById('panelUsd')},
+    {btn: document.getElementById('tabBtnJpy'), panel: document.getElementById('panelJpy')}
+  ];
+  tabs.forEach(function(t){
+    t.btn.addEventListener('click', function(){
+      tabs.forEach(function(o){
+        var active = (o === t);
+        o.btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        o.panel.classList.toggle('is-active', active);
+      });
+    });
+  });
+})();
+</script>
